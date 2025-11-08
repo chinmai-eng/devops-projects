@@ -48,7 +48,6 @@ pipeline {
                         withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                             sh "echo $PASS | docker login -u $USER --password-stdin"
                             sh "docker push ${IMAGE_NAME}-${TAG}"
-                            sh "docker logout"
                         }
                     }
                 }
@@ -64,7 +63,7 @@ pipeline {
                     echo "======================"
                     sh '''
                         CONTAINER_NAME=petclinic
-                        IMAGE_NAME=chinmai/spring-petclinic:${BUILD_NUMBER}
+                        IMAGE_NAME=chinmaich316/spring-petclinic-${BUILD_NUMBER}
 
                         echo "Pulling latest image..."
                         docker pull $IMAGE_NAME || true
