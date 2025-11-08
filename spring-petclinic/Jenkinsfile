@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "chinmaich316/spring-petclinic:${BUILD_NUMBER}"
+        IMAGE_NAME = "chinmaich316/spring-petclinic"
         DOCKER_CRED = 'docker-cred'          // Jenkins DockerHub credentials ID
         SONARQUBE_ENV = 'sonarqube'   // Jenkins SonarQube server name
     }
@@ -43,11 +43,12 @@ pipeline {
             steps {
                 dir('spring-petclinic') {
                     script {
-                        sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                        def TAG = "${BUILD_NUMBER}"
+                        sh "docker build -t ${IMAGE_NAME}-${TAG} ."
                         withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                            sh 'echo $PASS | docker login -u $USER --password-stdin'
-                            sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
-                            sh 'docker logout'
+                            sh "echo $PASS | docker login -u $USER --password-stdin"
+                            sh "docker push ${IMAGE_NAME}-${TAG}"
+                            sh "docker logout"
                         }
                     }
                 }
