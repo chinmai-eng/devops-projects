@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "chinmai/spring-petclinic:${BUILD_NUMBER}"
+        IMAGE_NAME = "chinmaich316/spring-petclinic:${BUILD_NUMBER}"
         DOCKER_CRED = 'docker-cred'          // Jenkins DockerHub credentials ID
         SONARQUBE_ENV = 'sonarqube'   // Jenkins SonarQube server name
     }
