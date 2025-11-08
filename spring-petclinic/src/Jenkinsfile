@@ -1,0 +1,87 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "chinmai/spring-petclinic:${BUILD_NUMBER}"
+        DOCKER_CRED = 'docker-cred'          // Jenkins DockerHub credentials ID
+        SONARQUBE_ENV = 'sonarqube-server'   // Jenkins SonarQube server name
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: 'main', url: 'https://github.com/chinmai-eng/devops-projects.git'
+                echo '✅ Code checked out from GitHub'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                dir('spring-petclinic') {
+                    sh 'mvn clean package -DskipTests'
+                }
+                echo '✅ Maven build done'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                dir('spring-petclinic') {
+                    withSonarQubeEnv("${SONARQUBE_ENV}") {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
+                echo '✅ Code analysis done with SonarQube'
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                dir('spring-petclinic') {
+                    script {
+                        sh "docker build -t ${IMAGE_NAME} ."
+                        withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                            sh "echo $PASS | docker login -u $USER --password-stdin"
+                            sh "docker push ${IMAGE_NAME}"
+                        }
+                    }
+                }
+                echo '✅ Docker image pushed to DockerHub'
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                script {
+                    echo "======================"
+                    echo "  Deploying to EC2..."
+                    echo "======================"
+                    sh '''
+                        CONTAINER_NAME=petclinic
+                        IMAGE_NAME=chinmai/spring-petclinic:${BUILD_NUMBER}
+
+                        echo "Pulling latest image..."
+                        docker pull $IMAGE_NAME || true
+
+                        echo "Stopping old container if running..."
+                        docker stop $CONTAINER_NAME || true
+                        docker rm $CONTAINER_NAME || true
+
+                        echo "Running new container..."
+                        docker run -d --name $CONTAINER_NAME -p 8081:8080 $IMAGE_NAME
+                    '''
+                    echo "✅ Deployment Complete! Visit: http://<EC2-IP>:8081"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '🎉 CI/CD pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed! Check logs.'
+        }
+    }
+}
