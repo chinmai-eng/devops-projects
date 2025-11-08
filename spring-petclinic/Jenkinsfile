@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven3'  // Ensure Maven is configured in Jenkins
+        jdk 'jdk-21'         // Ensure JDK is configured in Jenkins
+    }
 
     environment {
         IMAGE_NAME = "chinmai/spring-petclinic:${BUILD_NUMBER}"
