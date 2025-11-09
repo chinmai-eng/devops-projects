@@ -1,15 +1,25 @@
-# Step 1: Use official lightweight Java image
-FROM eclipse-temurin:17-jdk-jammy
+# Step 1: Use official lightweight JDK image
+FROM eclipse-temurin:17-jdk-alpine
 
-# Step 2: Set working directory inside the container
+# Step 2: Set working directory inside container
 WORKDIR /app
 
-# Step 3: Copy the built JAR file into the container
-# (the jar will be created by Jenkins using Maven)
-COPY target/*.jar app.jar
+# Step 3: Copy Maven build files
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 
-# Step 4: Expose the internal port your Spring Boot app runs on
+# Step 4: Download dependencies (cached)
+RUN ./mvnw dependency:go-offline
+
+# Step 5: Copy full project
+COPY src src
+
+# Step 6: Package application
+RUN ./mvnw clean package -DskipTests
+
+# Step 7: Expose app port
 EXPOSE 8080
 
-# Step 5: Run the application when the container starts
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Step 8: Run the Spring Boot application
+ENTRYPOINT ["java", "-jar", "target/spring-petclinic-1.0.0.jar"]
