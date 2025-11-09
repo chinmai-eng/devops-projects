@@ -166,6 +166,11 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+
+        <configuration>
+            <mainClass>org.springframework.samples.petclinic.PetClinicApplication</mainClass>
+        </configuration>
+
         <executions>
           <execution>
             <!-- Spring Boot Actuator displays build-related information
