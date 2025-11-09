@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PetClinicApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(PetClinicApplication.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(PetClinicApplication.class, args);
+	}
 
-    @GetMapping("/")
-    public String home() {
-        return "Welcome to Spring PetClinic!";
-    }
+	@GetMapping("/")
+	public String home() {
+		return "Welcome to Spring PetClinic!";
+	}
+
 }

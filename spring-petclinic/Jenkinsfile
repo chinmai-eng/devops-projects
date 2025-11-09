@@ -23,7 +23,7 @@ pipeline {
             steps {
                 dir('spring-petclinic') {
                     sh 'chmod +x mvnw'
-                    sh './mvnw clean package -DskipTests -Dspring-javaformat.skip=true'
+                    sh './mvnw clean package -DskipTests'
                 }
                 echo '✅ Maven build done'
             }
