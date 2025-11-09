@@ -19,7 +19,7 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # Step 7: Expose app port
-EXPOSE 8081
+EXPOSE 8080
 
 # Step 8: Run the Spring Boot application
-ENTRYPOINT [ "sh", "-c", "java", "-jar", "target/*.jar"]
+ENTRYPOINT [ "sh", "-c", "java -jar target/*.jar"]
