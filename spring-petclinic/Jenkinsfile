@@ -2,13 +2,13 @@ pipeline {
     agent any
     tools {
         maven 'maven3'  // Ensure Maven is configured in Jenkins
-        jdk 'jdk-21'         // Ensure JDK is configured in Jenkins
+        jdk 'jdk17'         // Ensure JDK is configured in Jenkins
     }
 
     environment {
-        IMAGE_NAME = "chinmai/spring-petclinic:${BUILD_NUMBER}"
+        IMAGE_NAME = "chinmaich316/spring-petclinic"
         DOCKER_CRED = 'docker-cred'          // Jenkins DockerHub credentials ID
-        SONARQUBE_ENV = 'sonarqube-server'   // Jenkins SonarQube server name
+        SONARQUBE_ENV = 'sonarqube'   // Jenkins SonarQube server name
     }
 
     stages {
@@ -43,10 +43,11 @@ pipeline {
             steps {
                 dir('spring-petclinic') {
                     script {
-                        sh "docker build -t ${IMAGE_NAME} ."
+                        def TAG = "${BUILD_NUMBER}"
+                        sh "docker build -t ${IMAGE_NAME}-${TAG} ."
                         withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                             sh "echo $PASS | docker login -u $USER --password-stdin"
-                            sh "docker push ${IMAGE_NAME}"
+                            sh "docker push ${IMAGE_NAME}-${TAG}"
                         }
                     }
                 }
@@ -62,7 +63,7 @@ pipeline {
                     echo "======================"
                     sh '''
                         CONTAINER_NAME=petclinic
-                        IMAGE_NAME=chinmai/spring-petclinic:${BUILD_NUMBER}
+                        IMAGE_NAME=chinmaich316/spring-petclinic-${BUILD_NUMBER}
 
                         echo "Pulling latest image..."
                         docker pull $IMAGE_NAME || true
