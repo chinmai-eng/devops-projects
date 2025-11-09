@@ -1,17 +1,56 @@
-target/*
-bin/*
-build/*
-.gradle/*
-.settings/*
+# Maven build files
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IntelliJ IDEA / Eclipse / VS Code
+.idea/
+*.iml
 .classpath
 .project
-.factorypath
-.attach_pid*
-.idea
-*.iml
-/target
+.settings/
+.vscode/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Build tools
+bin/
+build/
+.gradle/
+out/
+
+# Spring Boot specific
+*.pid
+*.war
+
+# Node modules (if UI added later)
+node_modules/
+
+# SonarQube cache
+.sonar/
+
+# Docker
+*.tar
+
+# Test reports
+surefire-reports/
+test-output/
+
+# Other
 .sts4-cache/
-.vscode
 _site/
 *.css
 !petclinic.css
+
