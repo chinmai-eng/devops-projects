@@ -1,25 +1,27 @@
-# Step 1: Use official lightweight JDK image
-FROM eclipse-temurin:17-jdk-alpine
-
-# Step 2: Set working directory inside container
+# ==============================
+# Stage 1: Build
+# ==============================
+FROM eclipse-temurin:17-jdk AS build
 WORKDIR /app
 
-# Step 3: Copy Maven build files
-COPY pom.xml .
-COPY mvnw .
+# Copy only what’s needed for Maven to cache dependencies
+COPY pom.xml mvnw ./
 COPY .mvn .mvn
-
-# Step 4: Download dependencies (cached)
 RUN ./mvnw dependency:go-offline
 
-# Step 5: Copy full project
+# Copy the source and build
 COPY src src
-
-# Step 6: Package application
 RUN ./mvnw clean package -DskipTests
 
-# Step 7: Expose app port
-EXPOSE 8080
+# ==============================
+# Stage 2: Runtime
+# ==============================
+FROM eclipse-temurin:17-jre
+WORKDIR /app
 
-# Step 8: Run the Spring Boot application
-ENTRYPOINT [ "sh", "-c", "java -jar target/*.jar"]
+# Copy built JAR from build stage
+COPY --from=build /app/target/spring-petclinic-*.jar app.jar
+
+# Expose same port as Jenkinsfile
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
