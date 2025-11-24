@@ -20,6 +20,7 @@ pipeline {
 
         stage('Build & Push Docker Image') {
             steps {
+                dir('redis-chat-app')
                 sh "docker build -t ${IMAGE_NAME}:latest ."
 
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
