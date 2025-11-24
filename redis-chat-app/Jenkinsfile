@@ -1,70 +1,82 @@
- pipeline {
+pipeline {
     agent any
-    
+
     environment {
         IMAGE_NAME = "chinmaich316/redis-chat-app"
-        DOCKER_CRED = "docker-cred"  // Jenkins DockerHub credentials ID
+        DOCKER_CRED = "docker-cred"          // Jenkins DockerHub credentials ID
 
-        AWS_ACCESS_KEY = credentials('aws-access-key') // Jenkins AWS Access Key ID
-        AWS_SECRET_KEY = credentials('aws-secret-key') // Jenkins AWS Secret Access Key
-    }               
+        AWS_ACCESS_KEY = credentials('aws-access-key')     // AWS Access Key
+        AWS_SECRET_KEY = credentials('aws-secret-key')     // AWS Secret Key
+    }
+
     stages {
+
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/chinmaich316/redis-chat-app.git'               
+                git branch: 'main', url: 'https://github.com/chinmaich316/redis-chat-app.git'
                 echo '✅ Code checked out from GitHub'
-            }   
-        }   
+            }
+        }
+
         stage('Build & Push Docker Image') {
             steps {
                 sh "docker build -t ${IMAGE_NAME}:latest ."
+
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
                     sh "docker push ${IMAGE_NAME}:latest"
                 }
-                echo '✅ Docker image built successfully'
-            }   
+
+                echo '✅ Docker image built & pushed successfully'
+            }
         }
-        stage('terraform init') {
-            steps {     
+
+        stage('Terraform Init') {
+            steps {
                 sh """
-                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
-                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
-                terraform -chdir=Terraform init
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
+                    terraform -chdir=Terraform init
                 """
-                }
                 echo '✅ Terraform initialized successfully'
             }
         }
-        stage('terraform apply') {
-            steps {     
+
+        stage('Terraform Apply') {
+            steps {
                 sh """
-                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
-                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
-                terraform -chdir=Terraform apply -auto-approve
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
+                    terraform -chdir=Terraform apply -auto-approve
                 """
                 echo '✅ Provisioned EC2 instance with Terraform'
             }
         }
+
         stage('Deploy') {
             steps {
-                def PUBLIC_IP = sh(script: "terraform -chdir=Terraform output -raw instance_public_ip", returnStdout: true).trim()
+                script {
+                    def PUBLIC_IP = sh(script: "terraform -chdir=Terraform output -raw instance_public_ip", returnStdout: true).trim()
 
-                echo " Connecting to EC2 instance at IP: ${PUBLIC_IP} "
+                    echo "🔗 Connecting to EC2 instance at IP: ${PUBLIC_IP}"
 
-                sshagent(['ec2-ssh-key']) {
-                sh """
-                    ssh -o StrictHostKeyChecking=no  ubuntu@${PUBLIC_IP} << EOF
-                    docker pull ${IMAGE_NAME}:latest
-                    docker stop redis-chat-app || true
-                    docker rm redis-chat-app || true
-                    docker run -d -p 5000:5000 --name redis-chat-app ${IMAGE_NAME}:latest
-                    EOF
-                """
-                echo '✅ Application deployed to EC2 instance'
+                    sshagent(['ec2-ssh-key']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ubuntu@${PUBLIC_IP} << EOF
+                                docker pull ${IMAGE_NAME}:latest
+                                docker stop redis-chat-app || true
+                                docker rm redis-chat-app || true
+                                docker run -d -p 5000:5000 --name redis-chat-app ${IMAGE_NAME}:latest
+                            EOF
+                        """
+                    }
+
+                    echo '🚀 Application deployed to EC2 instance'
+                }
             }
-        }   
+        }
     }
+
     post {
         success {
             echo '🎉 CI/CD pipeline completed successfully!'
@@ -73,6 +85,4 @@
             echo '❌ Pipeline failed! Check logs.'
         }
     }
- }
-
 }
