@@ -13,7 +13,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                checkout scm
+             
                 echo '✅ Code checked out from GitHub'
             }
         }
