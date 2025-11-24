@@ -37,7 +37,7 @@ pipeline {
                 sh """
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
                     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
-                    terraform -chdir=Terraform init
+                    terraform -chdir=redis-chat-app/Terraform init
                 """
                 echo '✅ Terraform initialized successfully'
             }
@@ -48,7 +48,7 @@ pipeline {
                 sh """
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
                     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
-                    terraform -chdir=Terraform apply -auto-approve
+                    terraform -chdir=redis-chat-app/Terraform apply -auto-approve
                 """
                 echo '✅ Provisioned EC2 instance with Terraform'
             }
@@ -57,7 +57,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    def PUBLIC_IP = sh(script: "terraform -chdir=Terraform output -raw instance_public_ip", returnStdout: true).trim()
+                    def PUBLIC_IP = sh(script: "terraform -chdir=redis-chat-app/Terraform output -raw instance_public_ip", returnStdout: true).trim()
 
                     echo "🔗 Connecting to EC2 instance at IP: ${PUBLIC_IP}"
 
