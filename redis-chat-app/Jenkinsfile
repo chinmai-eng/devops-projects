@@ -21,7 +21,7 @@ pipeline {
         stage('Build & Push Docker Image') {
             steps {
                 dir('redis-chat-app')
-                sh "docker build -t ${IMAGE_NAME}:latest ."
+                sh "docker build -t ${IMAGE_NAME}:latest redis-chat-app/"
 
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh "echo $PASS | docker login -u $USER --password-stdin"
