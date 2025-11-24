@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "chinmaich316/redis-chat-app"
-        DOCKER_CRED = "docker-cred"          // Jenkins DockerHub credentials ID
+        DOCKER_CRED = "docker-cred"     // Jenkins DockerHub credentials ID
 
         AWS_ACCESS_KEY = credentials('aws-access-key')     // AWS Access Key
         AWS_SECRET_KEY = credentials('aws-secret-key')     // AWS Secret Key
@@ -13,22 +13,22 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-             
                 echo '✅ Code checked out from GitHub'
             }
         }
 
         stage('Build & Push Docker Image') {
             steps {
-                dir('redis-chat-app')
-                sh "docker build -t ${IMAGE_NAME}:latest redis-chat-app/"
+                dir('redis-chat-app') {
+                    sh "docker build -t ${IMAGE_NAME}:latest ."
 
-                withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh "docker push ${IMAGE_NAME}:latest"
-                }
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CRED}", usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh "docker push ${IMAGE_NAME}:latest"
+                    }
 
-                echo '✅ Docker image built & pushed successfully'
+                    echo '✅ Docker image built & pushed successfully'
+                }   
             }
         }
 
