@@ -13,9 +13,9 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/chinmaich316/redis-chat-app.git'
+                
                 echo '✅ Code checked out from GitHub'
-                sh "ls -R"
+                
             }
         }
 
