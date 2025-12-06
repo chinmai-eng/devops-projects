@@ -65,9 +65,11 @@ pipeline {
                 script {
 
                     def PUBLIC_IP = sh(
-                        script: "cd Terraform && terraform output -raw instance_public_ip",
+                        script: "cd redis-chat-app/Terraform && terraform output -raw instance_public_ip",
                         returnStdout: true
                     ).trim()
+
+                    PUBLIC_IP = PUBLIC_IP.replaceAll('[^0-9\\.]', '')
 
                     echo "🔗 Connecting to EC2 instance at: ${PUBLIC_IP}"
 
