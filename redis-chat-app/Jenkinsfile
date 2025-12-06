@@ -91,7 +91,7 @@ pipeline {
                             # starting redis on chat-network
                             docker run -d --name redis --network chat-network redis:latest;
                             # start app on chat-network and map ports
-                            docker run -d -p 5000:8080 --name redis-chat-app --network chat-network -e REDIS_HOST=redis -e REDIS_PORT=6379 ${IMAGE_NAME}:latest;
+                            docker run -d -p 5000:8080 --name redis-chat-app --network chat-network -e REDIS_ENDPOINT_URL=redis:6379 ${IMAGE_NAME}:latest;
                        "
                        """
                     }
