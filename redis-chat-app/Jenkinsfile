@@ -78,12 +78,15 @@ pipeline {
                     ssh -o StrictHostKeyChecking=no ubuntu@${PUBLIC_IP} '
                     echo " Pulling Docker image..."
                     docker pull ${IMAGE_NAME}:latest
-                    echo " Stopping old container..."
+                    # create network if it doesn't exist
+                    docker network create chat-network || true
+                    # stopping and remove old containers if present
                     docker stop redis-chat-app || true
-                    echo " Removing old container..."
                     docker rm redis-chat-app || true
-                    echo " Starting new container..."
-                    docker run -d -p 5000:8080 --name redis-chat-app ${IMAGE_NAME}:latest
+                    # starting redis on chat-network
+                    docker run -d --name redis --network chat-network redis:latest
+                    # start app on chat-network and map ports
+                    docker run -d -p 5000:8080 --name redis-chat-app --network chat-network -e REDIS_HOST=redis -e REDIS_PORT=6379 ${IMAGE_NAME}:latest
                     '
                     """
                     }
