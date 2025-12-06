@@ -75,20 +75,25 @@ pipeline {
 
                     sshagent(['ec2-ssh-key']) {
                         sh """
-                    ssh -o StrictHostKeyChecking=no ubuntu@${PUBLIC_IP} '
-                    echo " Pulling Docker image..."
-                    docker pull ${IMAGE_NAME}:latest
-                    # create network if it doesn't exist
-                    docker network create chat-network || true
-                    # stopping and remove old containers if present
-                    docker stop redis-chat-app || true
-                    docker rm redis-chat-app || true
-                    # starting redis on chat-network
-                    docker run -d --name redis --network chat-network redis:latest
-                    # start app on chat-network and map ports
-                    docker run -d -p 5000:8080 --name redis-chat-app --network chat-network -e REDIS_HOST=redis -e REDIS_PORT=6379 ${IMAGE_NAME}:latest
-                    '
-                    """
+                        ssh -o StrictHostKeyChecking=no ubuntu@${PUBLIC_IP} "
+                            echo " Pulling Docker image..."
+                            docker pull ${IMAGE_NAME}:latest
+                            
+                            # create network if it doesn't exist
+                            docker network create chat-network || true
+                            
+                            # stopping and remove old containers if present
+                            docker stop redis-chat-app || true
+                            docker rm redis-chat-app || true
+                            docker stop redis || true
+                            docker rm redis || true
+                            
+                            # starting redis on chat-network
+                            docker run -d --name redis --network chat-network redis:latest;
+                            # start app on chat-network and map ports
+                            docker run -d -p 5000:8080 --name redis-chat-app --network chat-network -e REDIS_HOST=redis -e REDIS_PORT=6379 ${IMAGE_NAME}:latest;
+                       "
+                       """
                     }
 
                     echo '🚀 Application deployed successfully to EC2'
